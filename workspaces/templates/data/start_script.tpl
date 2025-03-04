@@ -8,7 +8,6 @@ sudo locale-gen en_US.UTF-8
 /tmp/code-server/bin/code-server --install-extension ms-python.python
 /tmp/code-server/bin/code-server --install-extension anwar.papyrus-pdf
 /tmp/code-server/bin/code-server --install-extension mads-hartmann.bash-ide-vscode
-/tmp/code-server/bin/code-server --install-extension 
 
 
 # mkdir -p /home/kasm-user/Desktop
