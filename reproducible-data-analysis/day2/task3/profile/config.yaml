@@ -1,0 +1,15 @@
+default-resources:
+  - mem_mb=2000
+  - time=480
+jobs: 100
+latency-wait: 60
+cores: 4
+restart-times: 1
+max-jobs-per-second: 20
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+scheduler: ilp
+use-conda: True
+conda-frontend: mamba
+use-singularity: True

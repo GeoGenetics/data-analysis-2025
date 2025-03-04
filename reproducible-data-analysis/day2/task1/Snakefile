@@ -1,0 +1,27 @@
+samples = ["sample1", "sample2", "sample3"]
+
+
+rule all:
+    input:
+        expand("results/{sample}/output.txt", sample=samples),
+
+
+rule preprocess:
+    input:
+        "data/{sample}.txt",
+    output:
+        "preprocessed/{sample}.txt",
+    shell:
+        "python scripts/preprocess_data.py {input} > {output}"
+
+
+rule process_sample:
+    input:
+        "preprocessed/{sample}.txt",
+    output:
+        "results/{sample}/output.txt",
+    params:
+        parameter1=config.get("parameter1", 5),
+        parameter2=config.get("parameter2", "abc"),
+    shell:
+        "python scripts/process_data.py {input} {params.parameter1} {params.parameter2} > {output}"
