@@ -31,7 +31,7 @@ library(scales)
 # we will use a subset of the complete COVID-19 dataset from Our World in Data
 # https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv
 
-covid_data <- read_csv("https://github.com/GeoGenetics/data-analysis-2025/raw/refs/heads/main/data/owd_covid_subset.csv")
+covid_data_subset <- read_csv("https://github.com/GeoGenetics/data-analysis-2025/raw/refs/heads/main/data/owd_covid_subset.csv")
 
 
 ## --------------------------------------------------------
@@ -59,6 +59,7 @@ ggplot(covid_data_subset) +
         x = people_vaccinated_per_hundred,
         y = people_fully_vaccinated_per_hundred
     ))
+
 
 ## --------------------------------------------------------
 ## Aesthetics
