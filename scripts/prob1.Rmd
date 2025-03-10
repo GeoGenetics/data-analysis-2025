@@ -1,0 +1,438 @@
+---
+title: "Introduction to probability theory 1"
+output: 
+  learnr::tutorial:
+    progressive: true   
+    allow_skip: true
+runtime: shiny_prerendered
+author: Fernando Racimo, Shyam Gopalakrishnan
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(viridis)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Today's programme
+
+We will try out different R functions for simulating probability distributions and computing summary statistics from the resulting data. 
+
+We will cover the following topics
+
+* Bernoulli distribution
+* Binomial distribution
+* Simulating discrete random variables
+* Expected value
+* Variance
+* Probability mass function
+* Playing with discrete probability distributions
+
+## The Bernoulli distribution: tossing a coin
+
+We can "virtually" toss a coin in our R console, using the rbinom() function:
+
+```{r}
+rbinom(1, 1, 0.5)
+```
+
+Try copying the above chunk multiple types, then run it. Do you always get the same result?
+
+```{r bern1, exercise = TRUE}
+
+```
+
+This function has 3 required input parameters: n, size and prob. The first parameter (n) determines the number of trials we are telling R to perform, in other words, the number of coin tosses we want to generate:
+
+```{r}
+rbinom(20, 1, 0.5)
+```
+
+Here, we generate 20 toin cosses, and the zeroes and ones represent whether we got a heads or a tails in each trial. For now, we will ignore the second parameter (size) and fix it at 1, but we'll revisit it in the next section. The third parameter (prob) dictates how biased the coin is. If we set it to 0.9, we'll get the outcomes of a biased coin toss, in particular biased towards heads:
+
+```{r}
+rbinom(20, 1, 0.9)
+```
+
+What happens when you set prob to 0.1? Or 0.999? Why?
+
+```{r bern2, exercise = TRUE}
+
+```
+
+What we are really doing here is simulating outcomes of a random variable that is governed by a particular probability distribution - in this case, the Bernoulli distribution. We can assign a name to this variable for storage and manipulation later on:
+
+```{r}
+X <- rbinom(1, 1, 0.9)
+```
+
+If you type this in your console, X will now store the value of the outcome of a biased coin toss (either 0 or 1), which you can use later in your code.
+
+How can we verify that R is really doing what we think it is doing? Well, if we think we have a fair coin and we throw it many times, then, on average, we should get the same number of heads and tails, right? This experiment should be more accurate the more trials we have. We can compute the average of our coin tosses by using the function sum(), which adds the elements of a vector, and then dividing by the total number of trials.
+
+Let's create a new variable (n) that will determine how many trials we attempt, say 20.
+
+```{r}
+n <- 20
+sum(rbinom(n, 1, 0.5)) / n
+```
+
+Run the chunk of code above, in the R console. Do you get the same number as I do? Do you get exactly 0.5? If not, why not? 
+
+```{r bern3, exercise = TRUE}
+
+```
+
+Try the same exercise but with 100 trials, 1000 trials and 100000 trials. What happens as we increase the number of trials? 
+
+```{r bern4, exercise = TRUE}
+
+```
+```{r bern4-solution}
+n <- 100
+sum(rbinom(n, 1, 0.5)) / n
+n <- 1000
+sum(rbinom(n, 1, 0.5)) / n
+n <- 100000
+sum(rbinom(n, 1, 0.5)) / n
+```
+
+This should illustrate how powerful R can be. We just threw 100 thousand coins into the air without even lifting our fingers! 
+
+Try to repeat the exercise, but this time, set the Bernoulli prob parameter to be equal to a number of your choice (between 0 and 1). What is the average of all your coin tosses? What happens as you increase the number of tosses?
+
+```{r bern5, exercise = TRUE}
+
+```
+```{r bern5-solution}
+# I've chosen p = 0.7, but you can choose whatever number between (and including) 0 and 1 that you want!
+p <- 0.7
+n <- 100
+sum(rbinom(n, 1, p)) / n
+n <- 1000
+sum(rbinom(n, 1, p)) / n
+n <- 100000
+sum(rbinom(n, 1, p)) / n
+# As we increase the number of tosses, the average approaches our choice for p with increasing accuracy.
+```
+
+
+## The Binomial distribution: adding up coin tosses
+
+Let's say we are now not interested in any particular coin toss, but in the sum of several coin tosses. Each toss is represented by a 0 or a 1, so the sum of all our tosses cannot be smaller than 0 or larger than the total number of tosses we perform.
+
+One way of doing this is by running 20 Bernoulli trials (i.e. 20 coin tosses), and then adding them up using the function `sum()`:
+
+```{r}
+sum(rbinom(20, 1, 0.5))
+```
+
+Turns out there's a short-hand way of performing the same experiment, i.e. tossing a bunch of coins - each a Bernoulli random variable - observing their outcomes and adding them up, without using the `sum()` function at all. Here's where the second input parameter - size - of the rbinom() function comes into play. So far, we've always left it equal to 1 in all our command lines above, but we can set it to any positive integer:
+
+```{r}
+rbinom(1, 20, 0.5)
+```
+
+The above code is equivalent to taking 20 Bernoulli trials, and then adding their outcomes up. The "experiment" we are running is now not a single coin toss, but 20 coin tosses together, so the first parameter is now 1 (note: if we had set it to 20, we would have performed 20 20-toss experiments). The outcome of this experiment is neither heads nor tails, but the sum of all the heads in the 20 coin tosses. 
+
+It turns out that this "experiment" is a probability distribution in its own right, and it is called the Binomial distribution. It has two parameters: the size of the experiment (how many tosses we perform) and the probability of heads for each toss (the prob parameter). The Bernoulli distribution is just a specific case of the Binomial distribution (the case in which we only toss 1 coin, i.e. size = 1). You can read more about this distribution if you go to the help menu for this function (type `?rbinom`).
+
+The Binomial and Bernoulli distributions are examples of distributions for discrete random variables, meaning random variables whose values can only take discrete values (0, 1, 2, 3, etc.). There are other types of distributions we'll study later, some of which can also take continuous values. For example, these could be any real number, or any real number between 2.4 and 8.3, or any positive number, etc. but we need not worry about these other distributions for now.
+
+## The expectation
+
+We can compute the average of multiple Binomial trials. Let's try adding the results of 5 Binomial trials, each with size 20:
+
+```{r}
+nsims <- 5
+size <- 20
+prob <- 0.5
+X <- rbinom(nsims, size, prob)
+X
+Xsum <- sum(X)
+Xsum
+```
+
+How many Bernoulli trials do you think this is this equivalent to?
+
+To get the average, we divide by the total number of trials. Remember here that the number of Binomial trials is 5:
+
+```{r}
+Xave <- Xsum / nsims
+Xave
+```
+
+A shorthand for obtaining the mean is the function mean(). This should give you the same result:
+
+```{r}
+Xave <- mean(X)
+Xave
+```
+
+Note that the mean need not be an integer, even though the outcome of each Binomial trial *must* be an integer.
+
+
+Try repeating the same exercise but using 100 Binomial trials, and then 100 thousand Binomial trials. What numbers do you get? What number do we expect to get as we increase the number of Binomial trials?
+
+```{r exp1, exercise = TRUE}
+
+```
+```{r exp1-solution}
+size <- 20
+prob <- 0.5
+ave100 <- sum(rbinom(100, size, prob))/100
+ave100
+ave100000 <- sum(rbinom(100000, size, prob))/100000
+ave100000
+```
+
+
+The number we "expect" our average to approach as we increase the number of trials is called the *Expectation* of a random variable. For discrete random variables, it is defined as follows:
+
+$$E[X] = \sum_{i}x_iP[X=x_i]$$
+
+Here the sum is over all possible values that the random variable X can take. In other words, it is equal to the sum of each of these values, weighted by the probability that the random variable takes that value.
+
+In the case of a variable that follows the Binomial distribution, the expectation happens to be equal to the product of size and prob: 
+
+$$E[X] = np$$ 
+
+Note that the n here refers to the size of a single Binomial trial. In the case of a variable Y that follows the Bernoulli distribution (which is just a Binomial with size 1), then:
+
+$$E[Y] = p$$ 
+This should make intuitive sense: if we throw a bunch of coins and add up their results, the number we expect to get should be approximately equal to the probability of heads times the number of tosses we perform. Note that this equality only holds approximately: for any given Binomial trial, we can get any number between 0 and the size of the Binomial experiment. If we take an average over many Binomial experiments, we'll approach this expectation ever more accurately. The average (also called "sample mean") over a series of n experiments is thus an approximation to the expectation, which is often unknown in real life. The sample mean is represented by a letter with a bar on top: 
+
+$$\bar{x} = \frac{\sum_{j=1}^{n}x_{i}}{n}$$
+
+You can also think of the expectation as the mean over an infinite number of trials.
+
+## Our first probability mass function
+
+Ok, all this talk of Bernoulli and Binomial is great. But what is the point of it? The nice thing about probability theory is that it allows us to better think about processes in nature, by codifying these processes into mathematical equations.
+
+For example, going back to our coin tossing example, if someone asked you how many heads you'd expect among 20 tosses, your best bet would be to give the mean of a Binomial distribution with size 20 and probability of heads equal to 0.5: $0.5*20=10$.
+
+But this is a fairly intuitive answer. You didn't need probability theory to tell you that about half the coins would turn out heads. Plus, we all know that one might not get 10 heads: we might get 9, 13 or even 0 if we're very unlucky. What is then, the probability that we would get 10 heads? In other words, if we were to repeat our Binomial experiment of 20 tosses a large number of times, how many of those experiments would yield exactly 10 heads? This is a much harder question to answer. Do you have a guess?
+
+It turns out that probability theory can come to the rescue. The Binomial distribution has a very neat equation called its "Probability Mass Function" (or PMF, for short), which answers this question exactly:
+
+$$P[ X = k ] = {n \choose k}p^{k}(1-p)^{n-k}$$
+
+If we let k = 10, and plug in our values for the sample size and probability of heads, we get an exact answer:
+
+$$P[ X = 10 ] = {20 \choose 10}0.5^{10}0.5^{10} = 0.1762...$$
+
+So in about 17% of all Binomial experiments of size 20 that we might perform, we should get that 10 out of the 20 tosses are heads.
+
+Let's unpack this equation a bit. You can see that it has 3 terms, which are multiplied together. We'll ignore the first term for now. Let's focus on the second term: $p^{k}$. This is simply equivalent to multiplying our probability of heads k times. In other words, this means that we need k of the tosses to be heads, and the probability of this happening is just the product of the probability of heads in each of the total (n) tosses. In our case, $k=10$, because we need 10 tosses, and $n=20$ because we tossed the coin 20 times. So far, so good.
+
+The third term is very similar. We not only need 10 heads, but also 10 tails (because we need exactly 10 of the tosses to be heads, no more, no less). The probability of this happening is the product of the probability of getting tails $(1-p)$ multiplied $n-k$ times. In our case, $n-k$ happens to also be equal to 10.
+
+But what about the first term: $n \choose k$ ? This is called a binomial coefficient. It is used to represent the ways in which one can choose an unordered subset of k elements from a fixed set of n elements. In our case, we need 10 of our 20 tosses to be heads, but we don't need to specify exactly which of the tosses will be heads. It could be that we get 10 heads followed by 10 tails, or 10 tails followed by 10 heads, or 1 head and 1 tail interspersed one after the other, or any other arbitrary combination of 10 heads and 10 tails. The binomial coefficient gives us the number of all these combinations. It is defined as:
+
+$${n \choose k} = \frac{n!}{k!(n-k)!}$$
+
+where
+
+$$a! = a(a-1)(a-2)(a-3) ...1$$
+
+Ok, this is very neat, but how can we check this equation is correct? Well, we can use simulations! We can generate a large number of Binomial trials in R, and check how many of those are exactly equal to our choice of k. The fraction of all trials that are equal to k should approximate $P[X=k]$. Let's try this for $k=10$ and 100,000 trials.
+
+```{r}
+nsims <- 100000
+size <- 20
+prob <- 0.5
+binomvec <- rbinom(nsims, size, prob)
+```
+
+We can determine which of these trials was equal to 10 using the "==" symbol:
+
+```{r}
+k <- 10
+verify <- (binomvec == k)
+```
+
+This returns a new vector in which each element is equal to TRUE if the corresponding element in "binomvec" is equal to 10, and FALSE otherwise. The nice thing is that R considers the value of TRUE to also be equal to 1, and the value of FALSE to also be equal to 0, so we can actually apply the function sum() to this vector!
+
+```{r}
+how_many_tens <- sum(verify)
+how_many_tens
+```
+
+Finally, to get at the fraction of all trials that were equal to 10, we simply divide by the number of trials:
+
+```{r}
+proportion_of_tens <- how_many_tens / nsims
+proportion_of_tens
+```
+
+You should get a number pretty close to 17.62%. You can imagine that the more trials we perform, the more accurate this number will approximate the exact probability given by the PMF.
+
+Try repeating the above procedure but using a different value of k, between 0 and 20. Is your resulting probability lower or higher than P[X=10]?
+
+```{r pmf1, exercise = TRUE}
+
+```
+```{r pmf1-solution}
+nsims <- 100000
+size <- 20
+prob <- 0.5
+binomvec <- rbinom(nsims, size, prob)
+k1 <- 5
+prop1 <- sum(binomvec == k1)/nsims
+prop1
+k2 <- 15
+prop2 <- sum(binomvec == k2)/nsims
+prop2
+```
+
+Plot a histogram of the vector "binomvec" using the function hist().
+
+```{r pmf2, exercise = TRUE}
+
+```
+```{r pmf2-solution}
+hist(binomvec,prob=TRUE)
+```
+
+The above histogram in an approximation to the PMF of a binomial distribution with size 20 and success probability equal to 0.5 (it's an approximation because it relies on 100,000 samples of a binomial experiment). We can obtain the exact PMF from R as well, using the function `dbinom`. This is very convenient: if we are working with a 'known' probability distribution (like the Binomial distribution), we can obtain the exact value of $P[X=k]$ directly in R, without having to do a ton of simulations. 
+
+Take a look at the help page for the `dbinom` function (`?dbinom`) and plot a barplot of the full PMF for a binomial distribution of size 20. This plot should show the exact value of $P[X=k]$ as a function of $k$. Compare this to the histogram you plotted in the previous exercise.
+
+```{r pmf3, exercise = TRUE}
+
+```
+```{r pmf3-solution}
+pmf <- dbinom(seq(0,20),20,0.5)
+barplot(pmf,names.arg=seq(0,20))
+```
+
+
+## The variance
+
+There is another important property of a distribution: its *Variance*. This reflects how much variation we expect to get among different instances of an experiment:
+
+$$Var[X] = E[(X-E[X])^{2}]$$
+
+The variance is the expectation of $(X-E[X])^{2}$. This term represents the squared difference between the variable and it expectation, and so the variance is the expected value of this squared difference.
+
+It turns out that the expectation of a function of a random variable is simply the sum of the function of each value the random variable can take, weighted by the probability that the random variable actually takes that value:
+
+$$E[f(x)] = \sum_{i}f(x_i)P[X=x_i]$$
+
+For a discrete random variable, we can thus write the variance as:
+
+$$Var[X] = \sum_{i}(x_i-E[X])^{2}P[X=x_i]$$
+
+In the particular case of a discrete random variable that follows the Binomial distribution, the variance is a simple function of n and p:
+
+$$Var[X] = n p(1-p)$$
+
+A measurable approximation to the *variance* is called the "sample variance" and can be computed from n samples of an experiment as follows: 
+
+$$s = \frac{\sum_{j=1}^{n}(x_{j} - \bar{x})^{2}}{n-1}$$
+
+Just as we can compute the sample mean of a set of trials using the function mean(), we can easily compute the variance of a set of trials using the function var():
+
+```{r}
+nsims <- 5
+size <- 100
+prob <- 0.5
+X <- rbinom(nsims, size, prob)
+X
+mean(X)
+var(X)
+```
+
+Compute the variance of a set of 100,000 Binomial trials, each of size 10, for different values of the probability of heads, ranging from 0 to 1 (in steps of 0.1). This is equivalent to performing one hundred thousand 10-toss experiments, with different types of biased coins in each experiment. For what value of the binomial probability (`p`) is the variance maximized? Afterwards, try overlaying the theoretical variance of the binomial distribuiton (`size*p*(1-p)`) on top of your plot.
+
+```{r var1, exercise = TRUE}
+
+```
+```{r var1-solution}
+nsims <- 100000
+size <- 10
+probvec <- seq(0,1,0.1)
+varvec <- sapply(probvec, function(prob){
+  X <- rbinom(nsims, size, prob)
+  return(var(X))
+})
+plot(probvec,varvec,xlab="p",ylab="sample variance")
+lines(probvec,size*probvec*(1-probvec))
+```
+
+## Playing with discrete probability distributions
+
+Take a look at the help pages for `rpois` (and `dpois` and `ppois`), and for `rgeom` (and `dgeom` and `sample`). There is a whole world of R functions we can use to sample random values from probability distributions or obtain probabilities from them!  The `_pois` family of functions allow us to work with Poisson distributions, while the `_geom` family of functions allow us to work with Geometric distributions.
+
+Be careful with which type of function you use! For example, `rpois` serves to generate random samples from the Poisson distribution. In turn, `dpois` allow us to calculate the Poisson PMF (in other words, $P[X=k]$) for any value of k. Finally, `ppois` allow us to calculate the "distribution function", which is just a fancy way of saying $P[X \leq k]$ for any value of k.
+
+After having navigated these help pages, let's take a stab at answering some discrete probability questions:
+
+Let's assume the number of meteorites hitting a planet follows a Poisson distribution. If meteorites hit the planet at a rate of 5 per year, what is the probability that 3 or less meteorites will hit on a given year?
+
+```{r disc1, exercise = TRUE}
+
+```
+```{r disc1-solution}
+lambda <- 5
+ppois(3, lambda) # ppois gives P[X less than or equal to k]
+```
+
+Assuming the same rate as above, what is the probability that more than 10 meteorites hit on a given year?
+
+```{r disc2, exercise = TRUE}
+
+```
+```{r disc2-solution}
+lambda <- 5
+1 - ppois(10, lambda)
+```
+
+Each hour, 3 buses arrive at a station on average. Simulate a thousand 1-hour instances of this random process, assuming the number of buses per hour follows a Poisson distribution. Compute their sample mean and variance.
+
+```{r disc3, exercise = TRUE}
+
+```
+```{r disc3-solution}
+lambda <- 3
+randvec <- rpois(1000,lambda) # We use rpois to generate random Poisson samples
+mean(randvec)
+var(randvec)
+```
+
+If I'm tossing a series of unbiased coins, what is the probability I get exactly 5 tails before I get a head?
+
+```{r disc4, exercise = TRUE}
+
+```
+```{r disc4-solution}
+prob <- 0.5
+dgeom(5,prob) # P[ exactly 5 tails before a head]
+```
+
+If I'm tossing a series of unbiased coins, what is the probability I get at least 5 tails before I get a head?
+
+```{r disc5, exercise = TRUE}
+
+```
+```{r disc5-solution}
+prob <- 0.5
+# Probability of at least 5 tails before a head is equal 1 minus the probability of 4 or less tails before a head.
+1 - pgeom(4,prob)
+```
+
+Finally, we can use the function `sample()` to simulate from a discrete uniform distribution. As input, this requires a vector containing the possible values that we can sample from (for example, the numbers 1, 2, 3, 4, 5 and 6 in a six-sided dice), and the number of trials we want to perform. Make sure to set the option `replace` to `TRUE`, so that we can sample with replacement from the specified vector.
+
+Using the `sample()` function, throw a fair 16-sided dice a thousand times and compute the sample mean of your results.
+
+```{r disc6, exercise = TRUE}
+
+```
+```{r disc6-solution}
+possiblevalues <- seq(1,16)
+ntrials <- 1000
+results <- sample(possiblevalues,ntrials,replace=TRUE)
+mean(results)
+```
