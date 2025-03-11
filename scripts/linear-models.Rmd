@@ -1,0 +1,304 @@
+---
+title: "Introduction to linear models"
+output: 
+  learnr::tutorial:
+    progressive: true   
+    allow_skip: true
+runtime: shiny_prerendered
+author: Fernando Racimo
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(viridis)
+if (!require("stargazer")) install.packages("stargazer") # Library for producing pretty tables of estimates from linear models
+if (!require("devtools")) install.packages("devtools")
+if (!require("report")) devtools::install_github("easystats/report") # Library for producing nice verbose reports of linear models
+knitr::opts_chunk$set(echo = TRUE)
+#if (!require("performance")) devtools::install_github("easystats/performance") # Library for evaluating performance of linear model
+#if (!require("see")) devtools::install_github("easystats/see")
+allisontab <- read.csv("Data_allison.csv")
+
+linearmodsim <- function(n=2, beta_0=0, beta_1=1, sigma.res=1, mu.explan=5, sigma.explan=1, rerror=rnorm, r_explan = rnorm ){
+  # Simulate explanatory variables
+  explan <- r_explan(n,mu.explan,sigma.explan)
+  # Sort the simulated explanatory values from smallest to largest
+  explan <- sort(explan)
+  # Simulate the error values
+  error <- rerror(n,0,sigma.res)
+  # Simulate response variables via the linear model
+  response <- beta_0 + beta_1 * explan + error
+  # Output a table containing the explanatory values and their corresponding response values
+  cbind(data.frame(explan,response))
+}
+```
+
+
+
+## Today's programme
+
+This module serves as an introduction to linear models
+
+We will cover the following topics
+
+* Fitting a simple linear model
+* Interpretting a fitted linear model
+* Simulating from a linear model
+* Multivariate linear regression
+
+
+## Fitting a simple linear regression
+
+We'll use a dataset published by Allison and Cicchetti (1976). In this study, the authors studied the relationship between sleep and various ecological and morphological variables across a set of mammalian species:
+https://science.sciencemag.org/content/194/4266/732
+
+Let's start by loading the data into a table:
+
+```{r}
+allisontab <- read.csv("Data_allison.csv")
+```
+
+This dataset contains several variables related to various body measurements and measures of sleep in different species. Note that some of these are continuous, while others are discrete and ordinal.
+
+```{r summarize}
+summary(allisontab)
+```
+
+
+We'll begin by focusing on the relationship between two of the continuous variables: body size (in kg) and total amount of sleep (in hours). Plot TotalSleep as a function of BodyWt to see what this relationship looks like:
+
+```{r fit1, exercise = TRUE}
+
+```
+```{r fit1-solution}
+ggplot(allisontab) + geom_point(aes(x=BodyWt,y=TotalSleep))
+```
+
+Hmmm this looks weird. We have many measurements of body weight around 0 (small values) and a few very large values of thousands of kilograms. This is not surprising: given that this dataset spans several different species, the measurements spans several orders of magnitude (from elephants to molerats). To account for this, variables involving body measurements (like weight or length) are traditionally converted into a log-scale when fitted into a linear model. What happens when we log-scale the body weight variable, and then plot these two variables again?
+
+```{r fit2, exercise = TRUE}
+
+```
+```{r fit2-solution}
+ggplot(allisontab) + geom_point(aes(x=log(BodyWt),y=TotalSleep))
+```
+
+A pattern appears to emerge now. There seems to be a negative correlation between the log of body weight and the amount of sleep a species has. Indeed, we can measure this correlation using the `cor()` function:
+
+```{r}
+cor(log(allisontab$BodyWt), allisontab$TotalSleep, use="complete.obs")
+```
+
+Let's build a simple linear model to explain total sleep, as a function of body weight. In R, the standard way to fit a linear model is using the function `lm()`. We do so by following the following formula:
+
+`fit <- lm(formula, data)`
+
+The formula within an `lm()` function for a simple linear regression is:
+
+$$\bf{y} \sim \bf{x_1}$$
+Where $y$ is the response variable and $x_1$ is the predictor variable. This formula is a shorthand way that R uses for writing the linear regression formula:
+
+$$\bf{Y} = \beta_0 + \beta_1 \bf{x_1} + \bf{\epsilon}$$
+In other words, R implicitly knows that each predictor variable will have an associated $\beta$ coefficient that we're trying to estimate. Note that here $\bf{y}$, $\bf{x_1}$, $\bf{\epsilon}$, etc. represent lists (vectors) of variables. We don't need to specify additional terms for the $\beta_0$ (intercept) and $\bf{\epsilon}$ (error) terms. The `lm()` function automatically accounts for the fact that a regression should have an intercept, and that there will necessarily exist errors (residuals) between our fit and the the observed value of $\bf{Y}$.
+
+We can also write this exact same equation by focusing on a single (example) variable, say $y_i$:
+
+$$y_i = \beta_0 + \beta_1 x_{1,i} + \epsilon_i$$
+In general, when we talk about vectors of variables, we'll use boldface, unlike when referring to a single variable.
+
+In our case, we'll attempt to fit total sleep as a function of the log of body weight, plus some noise:
+
+```{r}
+myfirstmodel <- lm(TotalSleep ~ log(BodyWt), data=allisontab) 
+myfirstmodel
+```
+
+This way, we are fitting the following model:
+
+$$\bf{TotalSleep} = \beta_0 + \beta_1 \bf{log(BodyWt)} + \bf{\epsilon}$$
+Remember that the $\beta_0$ coefficient is implicitly assumed by the `lm()` function. We can be more explicit and incorporate it into our equation, by simply adding a value of 1 (a constant). This will result in exactly the same output as before:
+
+```{r}
+myfirstmodel <- lm(TotalSleep ~ 1 + log(BodyWt), data=allisontab)  
+myfirstmodel
+```
+
+The function `attributes()` allows us to unpack all the components of the object outputted by the function `lm()` (and many other objects in R). Try inputting your model output into this function. We can observe that one of the attributes of the object is called `coefficients`. If we type `myfirstmodel$coefficients`, we obtain a vector with the value of our two fitted coefficients ($\beta_0$ and $\beta_1$). Using the values from this vector, try plotting the line of best fit on top of the data. Hint: use the `geom_abline()` function from the `ggplot2` library.
+
+```{r fit3, exercise = TRUE}
+
+```
+```{r fit3-solution}
+myfirstmodel <- lm(TotalSleep ~ log(BodyWt), data=allisontab) 
+ggplot(allisontab) + 
+  geom_point(aes(x=log(BodyWt),y=TotalSleep)) +
+  geom_abline(intercept=myfirstmodel$coefficients[1],slope=myfirstmodel$coefficients[2])
+```
+
+## Interpreting a simple linear regression
+
+
+We can obtain information about our model's fit using the function `summary()`:
+
+```{r}
+summary(myfirstmodel)
+```
+
+The `summary()` function provides a summary of the output of `lm()` after it's been given some data and a model to fit. Let's pause and analyze the output here. The first line just re-states the formula we have provided to fit our model. Below that, we get a summary (min, max, median, etc.) of all the residuals (error terms) between our linear fit and the observed values of $\bf{TotalSleep}$. 
+
+Below that, we can see a table with point estimates, standard errors, and a few other properties of our estimated coefficients: the intercept ($\beta_0$, first line) and the slope ($\beta_1$, second line). The standard error is a measure of how confident we are about our point estimate (we'll revisit this in later lectures). The "t value" corresponds to the statistic for a "t-test" which serves to determine whether the estimate can be considered as significantly different from zero. The last column is the P-value from this test. We can see that both estimates are quite significantly different from zero (P < 0.001), meaning we can reject the hypothesis that these estimates are equivalent to zero.
+
+Finally, the last few lines are overall measures of the fit of the model. 'Multiple R-squared' is the fraction of the variance in $\bf{TotalSleep}$ explained by the fitted model. Generally, we want this number to be high, but it is possible to have very complex models with very high R-squared but lots of parameters, and therefore we run the risk of "over-fitting" our data. 'Adjusted R-squared' is a modified version of R-squared that attempts to penalize very complex models. The 'residual standard error' is the sum of the squares of the residuals (errors) over all observed data points, scaled by the degrees of freedom of the linear model, which is equal to n – k – 1 where n = total observations and k = total model parameters. Finally, the F-statistic is a test for whether *any* of the explanatory variables included in the model have a relationship to the outcome. In this case, we only have a single explanatory variable ($\bf{log(BodyWt)}$), and so the P-value of this test is simply equal to the P-value of the t-test for the slope of $\bf{log(BodyWt)}$.
+
+We can use the function `report()` from the library `easystats` (https://github.com/easystats/report) to get a more verbose report than the `summary()` function provides.
+
+```{r}
+report(myfirstmodel)
+```
+
+Note that this function "standardizes" the input variables before providing a summary of the output, which makes the estimates' value to be slightly different than those stored in the output of `lm()`. This makes interpretation of the coefficients easier, as they are now expressed in terms of standard deviations from the mean.
+
+Another way to summarize our output is via a summary table in , which can be easily constructed using the function `stargazer()` from the library `stargazer` (https://cran.r-project.org/web/packages/stargazer/index.html).
+
+```{r}
+stargazer(myfirstmodel, type="text")
+```
+
+This package also supports LaTeX and HTML/CSS format (see the `type` option in `?stargazer`), which makes it very handy when copying the output of a regression from R into a working document.
+
+Try fitting a linear model for $\bf{TotalSleep}$ as a function of brain weight ($\bf{BrainWt}$). Keep in mind that this is a size measurement that might span multiple orders of magnitude, just like body weight. What are the estimated slope and intercept coefficients? Which coefficients are significantly different from zero? What is the proportion of explained variance? How does this compare to our previous model including $\bf{BodyWt}$?
+
+```{r interpret1, exercise = TRUE}
+
+```
+```{r interpret1-solution}
+newmodel <- lm(TotalSleep ~ log(BrainWt), data=allisontab) 
+summary(newmodel)
+```
+
+
+Now, plot the linear regression line of the above exercise on top of your data.
+
+```{r interpret2, exercise = TRUE}
+
+```
+```{r interpret2-solution}
+newmodel <- lm(TotalSleep ~ log(BrainWt), data=allisontab) 
+ggplot(allisontab) + 
+  geom_point(aes(x=log(BrainWt),y=TotalSleep)) +
+  geom_abline(intercept=newmodel$coefficients[1],slope=newmodel$coefficients[2])
+```
+
+## Simulating data from a linear model
+
+It is often useful to simulate data from a model to understand how its parameters relate to features of the data, and to see what happens when we change those parameters. We will now create a function that can simulate data from a simple linear model. We will then feed this function different values of the parameters, and see what the data simulated under a given model looks like.
+
+Let's start by first creating the simulation function. We'll simulate data from a linear model. The model simulation function needs to be told:
+1) The number ($n$) of data points we will simulate
+1) How the explanatory variables are distributed: we'll use a normal distribution to specify this.
+2) What the intercept ($\beta_0$) and slope ($\beta_1$) for the linear relationship between the explanatory and response variables are
+3) How departures (errors) from linearity for the response variables will be modeled: we'll use another normal distribution for that as well, and control the amount of error using a variable called `sigma.res`. We'll assume errors are homoscedastic (have the same variance) in this exercise.
+
+```{r, exercise=FALSE}
+linearmodsim <- function(n=2, beta_0=0, beta_1=1, sigma.res=1, mu.explan=5, sigma.explan=1, rerror=rnorm, r_explan = rnorm ){
+  # Simulate explanatory variables
+  explan <- r_explan(n,mu.explan,sigma.explan)
+  # Sort the simulated explanatory values from smallest to largest
+  explan <- sort(explan)
+  # Simulate the error values
+  error <- rerror(n,0,sigma.res)
+  # Simulate response variables via the linear model
+  response <- beta_0 + beta_1 * explan + error
+  # Output a table containing the explanatory values and their corresponding response values
+  cbind(data.frame(explan,response))
+}
+```
+
+Carefully read the code for the function above. Make sure you understand every step in the function.
+
+**Exercise**:
+
+q) Plot the output of a simulated linear model with 40 data points, an intercept of 1.5 and a slope of 3. Simulate from the same model one more time, and plot the output of the two simulations.
+
+```{r gen1, exercise = TRUE}
+
+```
+```{r gen1-solution}
+sim_A <- linearmodsim(n=40, beta_0=1.5, beta_1=3)
+sim_A2 <- linearmodsim(n=40, beta_0=1.5, beta_1=3)
+plot(sim_A[,1],sim_A[,2])
+plot(sim_A2[,1],sim_A2[,2])
+```
+
+b) Now, generate a new simulated data and fit it using the `lm()` function. Does your fit match your simulations?
+
+```{r gen2, exercise = TRUE}
+
+```
+```{r gen2-solution}
+sim_B <- linearmodsim(n=40, beta_0=1.5, beta_1=3)
+fitB <- lm(response ~ explan, data=sim_B)
+summary(fitB)
+```
+
+c) Try increasing the sample size (say, to 10,000 data points), and repeat the `lm()` fitting. How does this influence the accuracy of your fitted model? Try simulating and fitting multiple times to get an idea of how well you can estimate the parameters.
+
+```{r gen3, exercise = TRUE}
+
+```
+```{r gen3-solution}
+sim_C <- linearmodsim(n=10000, beta_0=1.5, beta_1=3)
+fitC <- lm(response ~ explan, data=sim_C)
+summary(fitC)
+```
+
+d) Try changing the standard deviation of the simulated residual errors (make `sigma.res` smaller or larger), and repeat the `lm()` fitting. How does this influence the accuracy of your fitted model? Why do you think this is?
+
+```{r gen4, exercise = TRUE}
+
+```
+```{r gen4-solution}
+sim_D <- linearmodsim(n=10000, beta_0=1.5, beta_1=3, sigma.res=100)
+fitD <- lm(response ~ explan, data=sim_D)
+summary(fitD)
+sim_E <- linearmodsim(n=10000, beta_0=1.5, beta_1=3, sigma.res=0.01)
+fitE <- lm(response ~ explan, data=sim_E)
+summary(fitE)
+```
+
+## A multivariate linear regression
+
+We can also make our model a bit more complex. Let's say we want to incorporate another variable - life span (in years) - into the model predicting sleep:
+
+```{r}
+multimodelA <- lm(TotalSleep ~ 1 + log(BodyWt) + LifeSpan, data=allisontab)
+summary(multimodelA)
+```
+
+In this model, we are now fitting $\bf{TotalSleep}$ as a linear function of two variables $\bf{log(BodyWt)}$ and $\bf{LifeSpan}$. The fitted coefficient for the $\bf{LifeSpan}$ variable is not significantly different from zero. The proportion of explained variance or the residual error have not changed much, relative to our earlier simpler (1-parameter) model. It seems like this new variable is not very useful for modeling $\bf{TotalSleep}$.
+
+In their paper, Allison et al. found that the log of the gestation time in years was a very good predictor of the amount of sleep in a species. Let's what happens when we add this variable into our model instead:
+
+```{r}
+multimodelB <- lm(TotalSleep ~ 1 + log(BodyWt) + log(Gestation), data=allisontab)
+summary(multimodelB)
+```
+
+We can see that in a model including both the log of body weight and the log of gestation time, the body weight's regression coefficient is no longer significantly different from zero, but the gestation time's coefficient is. The R-squared and adjusted R-squared values are now much larger than what we've seen before (around 45%!) and the residula standard error is also smaller than before (3.44). It seems like in a model containing both variables, we no longer need body weight to explain sleep duration, we've found a better explanatory variable!
+
+What happens if we use all three variables ($\bf{LifeSpan}$, $\bf{log(BodyWt)}$ and $\bf{log(Gestation)}$) as explanatory variables? Do we get a much better model fit than we using only two? What if we use $\bf{log(Gestation)}$ as the only explanatory variable?
+
+```{r multi1, exercise = TRUE}
+
+```
+```{r multi1-solution}
+multimodelC <- lm(TotalSleep ~ 1 + log(BodyWt) + log(Gestation) + LifeSpan, data=allisontab)
+summary(multimodelC)
+multimodelD <- lm(TotalSleep ~ 1 + log(Gestation), data=allisontab)
+summary(multimodelD)
+```
+
+Keep in mind that we generally want a good fit with as simple a model as possible (Occam's Razor). There will always generally be a trade-off between how much variance the model can explain and how complex the model is (how many parameters it has). In the course on Advanced Topics in Data Analysis, we'll find ways to compare models that are more complex to those that are more simple.
+
+
