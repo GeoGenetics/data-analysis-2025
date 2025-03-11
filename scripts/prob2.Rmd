@@ -1,0 +1,254 @@
+---
+title: "Probability theory 2"
+output: 
+  learnr::tutorial:
+    progressive: true   
+    allow_skip: true
+runtime: shiny_prerendered
+author: Shyam Gopalakrishnan
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(viridis)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Today's programme
+
+Similar to yesterday's tutorial, we will use various R functions to play around with continuous random variables.
+Specifically, we will cover the following topics
+
+-   Uniform distribution
+-   Exponential distribution
+-   Normal distribution
+-   Playing with central limit theorem
+
+For all of these distributions, we will cover sample from them, compute expectations and variance.
+
+## Uniform distribution
+
+We will start today's exploration of the continuous distributions with the Uniform distribution.
+Let us start by sampling a single number from a uniform distribution between 0 and 1.
+We will use the `runif` function to do this.
+
+```{r}
+runif(n=1, min=0, max=1)
+```
+
+Try adjusting the min and max options to change the support of the distribution to -1 and 1.
+
+```{r unif1, exercise = TRUE}
+
+```
+
+Try copying the original code multiple types, then run it.
+Do you always get the same result?
+Do you ever get the same result?
+
+```{r unif2, exercise = TRUE}
+
+```
+
+The first input parameter (n) determines the number of samples we are asking for.
+Try increasing it to 50 samples, and see if you get a repeat observation.
+Would you expect a repeat observation?
+
+```{r unif3, exercise = TRUE}
+```
+
+Let us try and compute the pdf of the Uniform distribution on (0, 1) at the value of 0.3.
+
+```{r}
+dunif(0.3, 0, 1)
+```
+
+What did you get for `f(x=0.3)` for the uniform distribution?
+Remember that you can always look up help for R functions using the `?` operator, e.g. `?dunif`.
+
+Try to change the value at which we are computing the pdf, across various choices of x between 0 and 1.
+What do you get for pdf at these points?
+What would you expect?
+Try this for the distribution on (-1, 1)?
+What would you expect happens to the value of f(x=0.3)?
+Play around with the range of the distribution, and see what happens to the pdf: f(x)?
+
+```{r unif4, exercise = TRUE}
+
+```
+
+Similar to the `runif` and `dunif` function, we have the `punif` and `qunif` functions that give you the CDF and quantile function respectively.
+CDF we already know, but what is the quantile function?
+Remember that CDF, F(x) = P(X \<= x), so `punif` gives the value F(x) for a given x.
+The quantile function is the inverse of the CDF, so given a value b, it finds a value x, such that F(x) = b.
+Let us use these to find the cdf at the point 0.79.
+Also, find the value of x, such that the cdf is 0.35.
+
+```{r}
+punif(0.79)
+qunif(0.35)
+```
+
+Try the same values, but with the range now being -1, 1.
+
+```{r unif5, exercise = TRUE}
+
+```
+
+Let us now use random sampling to get an estimate of the mean of the random variable with Uniform distribution on (0,1).
+For starters, let us use 100 samples.
+
+```{r}
+mean(runif(n=100))
+```
+
+Try it with 1000, 10000 and 100000 samples.
+What happens to the mean estimate?
+Try the same also for the variance.
+How close do these get to the theoretical values for the uniform distribution?
+
+```{r}
+
+```
+
+The change in the estimates of the mean and the variance should tell us the power of increasing the sample size.
+For each sample size, do this 100 times, and plot the results using a box plot to see how the accuracy of the mean estimate changes with sample size.
+
+## Exponential distribution
+
+The second continuous distribution that we talked about was the exponential distribution.
+Just like we did with the uniform distribution, we have the functions `rexp`, `pexp`, `qexp` and `dexp` for the exponential distribution that will allow us to sample, get the CDF, quantile function and pdf for this distribution.
+Remember that the exponential distribution has only one parameter $\lambda$ that is the rate parameter.
+
+As we did for the uniform distribution, let us start by sampling from the exponential distribution with rate 5.
+
+```{r}
+rexp(1, 5)
+```
+
+Now let us sample 100 samples from this distribution, and plot a histogram of the values.
+
+```{r exp1, exercise = TRUE}
+
+```
+
+What does the histogram look like?
+Repeat the same experiment with rate values of 1 and 10.
+How do the histograms change?
+
+```{r exp2, exercise = TRUE}
+
+```
+
+We can also use the `dexp` function to get the plot for the PDF of this distribution.
+
+```{r}
+x = seq(0, 5, by=0.01)
+exp_pdf = dexp(x, rate=5)
+plot(x, exp_pdf, type="l", col="red", xlab="X", ylab="Exponential pdf")
+```
+
+You can also try to do the same for rates of 1 and 10, and compare them with the histograms you get.
+
+```{r exp25, exercise = TRUE}
+
+```
+
+We will now use the sampling function to compute various statistics for the exponential distribution, and see how well they match up with what we know about the distribution from theory.
+First let us set the rate parameter $\lambda = 5$.
+Using this and a sample size of 1000, compute the probability that the random variable with this exponential distribution is less than 0.5, and then 0.2.
+
+```{r}
+exp_sample = rexp(1000, 5)
+mean(exp_sample < 0.5)
+mean(exp_sample > 0.2)
+```
+
+Let us now use the `pexp` function to verify if our estimates are correct.
+Use the help to figure out what the `pexp` function inputs.
+
+```{r exp3, exercise = TRUE}
+
+```
+
+For the exponential distribution, we know that the mean is given by $\lambda^{-1}$.
+So using the sampling method, for a rate of 5, and a sample size of 100, 1000, and 10000, compute the mean of the random variable with this distribution.
+I have the code for 100 samples.
+Add the code for 1000 and 10000 samples.
+Do you see the same effect as you did for the uniform distribution?
+
+```{r exp4, exercise = TRUE}
+exp_sample = rexp(100, 5)
+mean(exp_sample)
+var(exp_sample)
+```
+
+## Normal distribution
+
+The normal distribution (Gaussian) is the most important distribution in probability theory and statistics - we will discuss more the why in the next section.
+As with the other two distributions that we have already looked at today, the functions `rnorm`, `dnorm`, `pnorm` and `qnorm` let you compute the various aspects of the normal distribution.
+
+Remember that the normal distribution is parameterized by two parameters, the mean $\mu$ and the standard deviation, $\sigma$.
+Let us start with the distribution with a mean of 0 ($\mu=0$) and a standard deviation of 1 ($\sigma=1$).
+Let us start by simulating 1000\
+samples from this distribution, and plotting a histogram with them - to recover the bell curve.
+Let us then compare it with the expected pdf for this normal between -5 and 5.
+
+```{r}
+norm_samples = rnorm(1000, 0, 1)
+x = seq(-5,5,by=0.01)
+norm_pdf = exp(-x**2)/sqrt(2*pi)
+hist(norm_samples, border=NA, col="gray50", probability=TRUE, breaks=50)
+lines(x, norm_pdf, type="l", col="firebrick")
+```
+
+Let us use the same simulation to see what proportion of the samples lie within 1 standard deviation of the mean.
+Remember that the mean is 0, and standard deviation is 1, so we are looking for proportion of samples that lie in the window (-1, 1).
+What number is this?
+What about within 2 standard deviations (sd) of 0.
+Code for 1 sd is given, try 2 and 3 sds away from the mean.
+
+```{r norm1, exercise = TRUE}
+norm_samples = rnorm(1000)
+prop_1sd = mean(norm_samples > -1 & norm_samples < 1)
+```
+
+We know $P(a < X < b) = F(b) -F (a)$, so let us compute these proportions again from the CDF themselves.
+Again code for the 1st case is given.
+
+```{r norm15, exercise = TRUE}
+prop_1sd_theoretical = pnorm(1) - pnorm(-1)
+```
+
+How do these compare to the proportion you got by counting the samples in that range?
+
+Let us now try to do the same with a different mean and standard deviation - say mean of 10 and standard deviation of 5.
+Generate a 1000 samples, and figure out proportion of samples that within 1, 2 and 3 sd of the mean.
+What are these proportions?
+How did they differ from the standard normal case.
+
+```{r norm2, exercise = TRUE}
+
+```
+
+Let us use the same samples to compute the sample mean and sample variance of underlying distribution.
+
+```{r norm3, exercise = TRUE}
+
+```
+
+Now let us compute the correlation between two normal distributions, one of which has mean 0 and sd 1, whereas the other has mean 10 and sd 5.
+
+```{r norm4}
+norm_samp_0_1 = rnorm(1000, 0, 1)
+norm_samp_10_5 = rnorm(1000, 10, 5)
+cor(norm_samp_0_1, norm_samp_10_5)
+```
+
+Use the formula from yesterday (and remember that variance is sd\^2) to compute the correlation theoretically, what would it be?
+
+Additional exercise: \## Central limit theorem
