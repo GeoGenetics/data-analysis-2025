@@ -6,3 +6,6 @@ For more information on the data file for student performance, go to https://www
 
 ## Mushroom data - eat and/or die
 For more information on the mushroom data, go to https://www.kaggle.com/datasets/uciml/mushroom-classification/
+
+## Student award data
+For more information, and to follow along with the poisson regression done in a course at UCLA using this dataset, please visit https://stats.oarc.ucla.edu/r/dae/poisson-regression/
