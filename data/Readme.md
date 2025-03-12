@@ -9,3 +9,6 @@ For more information on the mushroom data, go to https://www.kaggle.com/datasets
 
 ## Student award data
 For more information, and to follow along with the poisson regression done in a course at UCLA using this dataset, please visit https://stats.oarc.ucla.edu/r/dae/poisson-regression/
+
+## Traffic accident severity dataset 
+This dataset can be used for a multinomial (polytomous) regression - the outcome variable is called accident severity, and the other variables are predictor/explanatory variables. For more information, visit https://www.kaggle.com/datasets/adityaakuskar/accident-prediction-dataset?select=RTA+Dataset.csv
