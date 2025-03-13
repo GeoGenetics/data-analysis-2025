@@ -35,11 +35,12 @@ library(tidyverse)
 
 covid_data <- read_csv("https://catalog.ourworldindata.org/garden/covid/latest/compact/compact.csv")
 
+
 # First, let's have another look at the data
 covid_data
 
 # This COVID19 epidemiological dataset contains 
-# 479,136 observations (rows) of
+# 479,146 observations (rows) of
 # 61 variables (columns)
 
 
