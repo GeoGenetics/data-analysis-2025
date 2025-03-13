@@ -15,3 +15,6 @@ This dataset can be used for a multinomial (polytomous) regression - the outcome
 
 ## Gene expression tissue dataset
 For getting access to the gene-tissue-expression dataset (GTEx), please use this link. You can directly download it from the link, or use the terminal with wget to download it using the command `wget https://github.com/Center-for-Health-Data-Science/IntroToML/raw/main/data/gtex_1000.csv.gz`.
+
+## Mnist digits dataset
+The MNIST digits data can be found [here](https://github.com/pjreddie/mnist-csv-png?tab=readme-ov-file). Download the csv file. You can follow along on the t-sne for this data at this [post](https://www.appsilon.com/post/r-tsne).
