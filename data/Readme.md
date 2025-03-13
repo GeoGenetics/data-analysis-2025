@@ -12,3 +12,6 @@ For more information, and to follow along with the poisson regression done in a 
 
 ## Traffic accident severity dataset 
 This dataset can be used for a multinomial (polytomous) regression - the outcome variable is called accident severity, and the other variables are predictor/explanatory variables. For more information, visit https://www.kaggle.com/datasets/adityaakuskar/accident-prediction-dataset?select=RTA+Dataset.csv
+
+## Gene expression tissue dataset
+For getting access to the gene-tissue-expression dataset (GTEx), please use this link. You can directly download it from the link, or use the terminal with wget to download it using the command `wget https://github.com/Center-for-Health-Data-Science/IntroToML/raw/main/data/gtex_1000.csv.gz`.
