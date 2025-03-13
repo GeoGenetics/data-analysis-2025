@@ -1,0 +1,80 @@
+---
+title: "Genes and Geography in Europe"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this exercise, the aim is to reproduce parts of the analysis of one of the seminal papers in human population genetics, ["Genes Mirror Geography within Europe"](https://www.nature.com/articles/nature07331), Novembre et al 2018 Nature. We need the following R packages for this exercise: 
+
+```{r env}
+suppressMessages(library(tidyverse))
+suppressMessages(library(vegan))
+suppressMessages(library(maps))
+suppressMessages(library(geosphere))
+```
+
+<br />
+The dataset for reproducing the main figures is available from the [Novembre lab Github repository](https://github.com/NovembreLab/Novembre_etal_2008_misc). Here, we will use a minimally reformatted versions of the main PCA results table. 
+
+```{r import, echo = FALSE}
+pca <- read_tsv("https://www.dropbox.com/s/skwwqwqtymecsct/novembre_2008_pca.tsv?dl=1")
+colors <- read_tsv("https://www.dropbox.com/s/6wu3s2wvmlfu5cz/novembre_2008_colours.tsv?dl=1", 
+                   col_names = c("country", "color"))
+```
+
+<br />
+First few lines of the dataset and color palette:
+
+```{r data1, echo=FALSE}
+knitr::kable(
+  head(pca), booktabs = TRUE
+)
+```
+
+```{r data2, echo=FALSE}
+knitr::kable(
+  head(colors), booktabs = TRUE
+)
+```
+
+There are two expected outcomes of this exercise:
+
+**Recreate the PCA plot in Figure 1 starting from the PCA results table**
+
+To achieve this, you should carry out the following steps:
+
+* Read the [dataset](https://www.dropbox.com/s/skwwqwqtymecsct/novembre_2008_pca.tsv?dl=1) containing PCA coordinate and geographic locations, as well as the [color palette table](https://www.dropbox.com/s/6wu3s2wvmlfu5cz/novembre_2008_colours.tsv?dl=1) into R
+
+* Rotate the original PCA coordinates to maximize the correlation between PCs and geographic locations. This can be achieved using the `procrustes()` function of the `vegan` R package. The function takes two matrix objects as input, the first one the target matrix (i.e. the geographic coordinates), and the second one the matrix to be rotated (i.e. the PCA result). More details on how to use the function can be found in the help page by typing `?procrustes`
+
+* Calculate the optimal rotation angle in degrees from the rotation matrix returned in the `rotation` element of the results object. A rotation matrix defined as
+
+\begin{bmatrix}
+  cos\:\theta & -sin\:\theta \\
+  sin\:\theta & cos\:\theta 
+\end{bmatrix}
+
+where $\theta$ represents the rotation angle (in unit of radians) counterclockwise from the positive x axis. The rotation angle value can be extracted using the `atan2` function with matrix elements (M~2,1~, M~1,1~) as the two arguments
+
+* Visualize the resulting rotated PCA using `ggplot2`. Start by trying to replicate the overall PCA plot of samples (using `geom_text()` with the given population labels), with the color scale in the given palette table (using `scale_colour_manual()`). Add population median positions using summary tables produced by `group_by()` and `summarise()`. 
+
+* Adding rotated axes and their labels requires a bit more processing. A possible solution would be rotating the coordinates of points at the ends of the original axes into the new coordinates by using the `predict()` function on the procrustes result object, and manually drawing the rotated axes using `geom_segment()`.
+
+<br />
+**Predict the geographic location of samples from Austria from their PCA position**
+
+To achieve this, you can follow the linear regression approach from Novembre et al:
+
+* Split your data into a test set containing only samples from Austria, and a training set of the remaining individuals.
+
+* Create two linear regression models, one for longitude and one for latitude as outcomes. For each model, use both rotated PC1 and PC2, as well as their interaction as predictors. The syntax for such a model in R is `lm(response ~ predictor1 * predictor2, data = data)`.
+
+* Obtain the predicted longitude and latitude for the test samples using the `predict()` function on both models. 
+
+* Evaluate prediction accuracy by calculating the average distance of the predicted locations from the true location. The distance between two points defined by longitude/latitude can be calculated using the "Haversine" great circle distance, implemented in the `distHaversine()` function of the `geosphere` R package.
+
+* Plot the actual and predicted locations of the test samples on a map. You can find a simple example of how to plot spatial data in `ggplot2` towards the end of the chapter "[Data visualization](https://r4ds.had.co.nz/data-visualisation.html)" of the "R for data science" book.
