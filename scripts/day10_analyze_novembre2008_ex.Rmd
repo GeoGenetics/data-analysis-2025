@@ -20,10 +20,9 @@ suppressMessages(library(geosphere))
 <br />
 The dataset for reproducing the main figures is available from the [Novembre lab Github repository](https://github.com/NovembreLab/Novembre_etal_2008_misc). Here, we will use a minimally reformatted versions of the main PCA results table. 
 
-```{r import, echo = FALSE}
-pca <- read_tsv("https://www.dropbox.com/s/skwwqwqtymecsct/novembre_2008_pca.tsv?dl=1")
-colors <- read_tsv("https://www.dropbox.com/s/6wu3s2wvmlfu5cz/novembre_2008_colours.tsv?dl=1", 
-                   col_names = c("country", "color"))
+```{r import}
+pca <- read_tsv("https://github.com/GeoGenetics/data-analysis-2025/raw/refs/heads/main/data/novembres_2008_pca.tsv")
+colors <- read_tsv("https://github.com/GeoGenetics/data-analysis-2025/raw/refs/heads/main/data/novembres_2008_colors.tsv")
 ```
 
 <br />

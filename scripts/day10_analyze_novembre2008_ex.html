@@ -365,15 +365,17 @@ suppressMessages(library(geosphere))</code></pre>
 the <a href="https://github.com/NovembreLab/Novembre_etal_2008_misc">Novembre
 lab Github repository</a>. Here, we will use a minimally reformatted
 versions of the main PCA results table.</p>
-<pre><code>## Rows: 1387 Columns: 7
+<pre class="r"><code>pca &lt;- read_tsv(&quot;https://github.com/GeoGenetics/data-analysis-2025/raw/refs/heads/main/data/novembres_2008_pca.tsv&quot;)</code></pre>
+<pre><code>## Rows: 1387 Columns: 13
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
-## chr (3): sampleId, country, alabels
-## dbl (4): longitude, latitude, PC1, PC2
+## chr  (3): sampleId, country, alabels
+## dbl (10): longitude, latitude, PC1, PC2, PC3, PC4, PC5, PC6, PC7, PC8
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-## Rows: 41 Columns: 2
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>colors &lt;- read_tsv(&quot;https://github.com/GeoGenetics/data-analysis-2025/raw/refs/heads/main/data/novembres_2008_colors.tsv&quot;)</code></pre>
+<pre><code>## Rows: 41 Columns: 2
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
 ## chr (2): country, color
@@ -383,13 +385,19 @@ versions of the main PCA results table.</p>
 <p><br /> First few lines of the dataset and color palette:</p>
 <table>
 <colgroup>
-<col width="12%" />
-<col width="30%" />
-<col width="10%" />
-<col width="13%" />
-<col width="12%" />
-<col width="10%" />
-<col width="10%" />
+<col width="7%" />
+<col width="18%" />
+<col width="6%" />
+<col width="8%" />
+<col width="7%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -400,6 +408,12 @@ versions of the main PCA results table.</p>
 <th align="right">latitude</th>
 <th align="right">PC1</th>
 <th align="right">PC2</th>
+<th align="right">PC3</th>
+<th align="right">PC4</th>
+<th align="right">PC5</th>
+<th align="right">PC6</th>
+<th align="right">PC7</th>
+<th align="right">PC8</th>
 </tr>
 </thead>
 <tbody>
@@ -411,6 +425,12 @@ versions of the main PCA results table.</p>
 <td align="right">45.32000</td>
 <td align="right">0.0111</td>
 <td align="right">-0.0460</td>
+<td align="right">-0.0574</td>
+<td align="right">-0.0099</td>
+<td align="right">-0.0092</td>
+<td align="right">0.0089</td>
+<td align="right">0.0485</td>
+<td align="right">0.0040</td>
 </tr>
 <tr class="even">
 <td align="left">ind_660</td>
@@ -420,6 +440,12 @@ versions of the main PCA results table.</p>
 <td align="right">43.94949</td>
 <td align="right">-0.0300</td>
 <td align="right">-0.0443</td>
+<td align="right">-0.0149</td>
+<td align="right">-0.0368</td>
+<td align="right">-0.1303</td>
+<td align="right">0.0348</td>
+<td align="right">-0.0073</td>
+<td align="right">-0.0142</td>
 </tr>
 <tr class="odd">
 <td align="left">ind_1890</td>
@@ -429,6 +455,12 @@ versions of the main PCA results table.</p>
 <td align="right">49.73661</td>
 <td align="right">0.0137</td>
 <td align="right">-0.0444</td>
+<td align="right">-0.0275</td>
+<td align="right">-0.0050</td>
+<td align="right">0.0595</td>
+<td align="right">-0.0272</td>
+<td align="right">0.0110</td>
+<td align="right">-0.0315</td>
 </tr>
 <tr class="even">
 <td align="left">ind_1923</td>
@@ -438,6 +470,12 @@ versions of the main PCA results table.</p>
 <td align="right">44.17588</td>
 <td align="right">0.0028</td>
 <td align="right">-0.0493</td>
+<td align="right">-0.0266</td>
+<td align="right">0.0213</td>
+<td align="right">-0.0389</td>
+<td align="right">-0.0005</td>
+<td align="right">0.0148</td>
+<td align="right">0.0069</td>
 </tr>
 <tr class="odd">
 <td align="left">ind_2083</td>
@@ -447,6 +485,12 @@ versions of the main PCA results table.</p>
 <td align="right">43.94949</td>
 <td align="right">-0.0031</td>
 <td align="right">-0.0416</td>
+<td align="right">-0.0250</td>
+<td align="right">-0.0111</td>
+<td align="right">-0.0129</td>
+<td align="right">-0.0003</td>
+<td align="right">0.0477</td>
+<td align="right">-0.0164</td>
 </tr>
 <tr class="even">
 <td align="left">ind_2733</td>
@@ -456,6 +500,12 @@ versions of the main PCA results table.</p>
 <td align="right">43.94949</td>
 <td align="right">-0.0026</td>
 <td align="right">-0.0424</td>
+<td align="right">-0.0432</td>
+<td align="right">0.0139</td>
+<td align="right">-0.0055</td>
+<td align="right">-0.0138</td>
+<td align="right">-0.0457</td>
+<td align="right">0.0087</td>
 </tr>
 </tbody>
 </table>
